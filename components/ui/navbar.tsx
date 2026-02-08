@@ -20,7 +20,7 @@ export function Navbar() {
             <Link href="/" className="flex items-center gap-3">
                 <Image src="/logo.png" alt="Logo" width={40} height={40} />
                 <span className="font-bold text-2xl">
-                    Fraser Senior Survey
+                    JFSS Class of 2026
                 </span>
             </Link>
 
