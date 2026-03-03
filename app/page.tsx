@@ -1,11 +1,20 @@
 import { Navbar } from "@/components/ui/navbar"
+import Image from "next/image"
 
 export default function Page() {
   return (
     <main>
-      <Navbar />
-      <div className="p-4">
-        <h1>Welcome to the Seniors App</h1>
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/hero-bg.png"
+          layout="fill"
+          objectFit="cover"
+          alt="Hero background"
+        />
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+      </div>
+      <div className="relative w-[90%] mx-auto bg-white rounded-[20px] opacity-90 mt-6">
+        <Navbar />
       </div>
     </main>
   )
