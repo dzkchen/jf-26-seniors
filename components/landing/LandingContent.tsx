@@ -50,7 +50,7 @@ export function LandingHero() {
 
 const cards = [
   {
-    href: "/class-profile",
+    href: "/profile",
     title: "Class Profile",
     description: "Releasing in June",
   },
