@@ -1,21 +1,38 @@
-import { Navbar } from "@/components/ui/navbar"
-import Image from "next/image"
+import { Navbar } from "@/components/ui/navbar";
+import { LandingHero, LandingCards } from "@/components/landing/LandingContent";
+import Image from "next/image";
 
 export default function Page() {
   return (
-    <main>
-      <div className="absolute inset-0 z-0">
+    <main className="min-h-screen relative overflow-x-hidden">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/hero-bg.png"
-          layout="fill"
-          objectFit="cover"
-          alt="Hero background"
+          fill
+          className="object-cover"
+          alt=""
+          priority
+          sizes="100vw"
         />
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(228, 248, 255, 0.85)" }}
+        />
       </div>
-      <div className="relative w-[90%] mx-auto bg-white rounded-[20px] opacity-90 mt-6">
-        <Navbar />
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <div className="w-[90%] max-w-6xl mx-auto mt-4 sm:mt-6">
+          <div
+            className="rounded-2xl px-4 py-2 shadow-lg"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.95)" }}
+          >
+            <Navbar />
+          </div>
+        </div>
+
+        <LandingHero />
+        <LandingCards />
       </div>
     </main>
-  )
+  );
 }
