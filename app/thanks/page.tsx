@@ -1,4 +1,3 @@
-import LoginCard from "@/components/ui/loginpage";
 import { Navbar } from "@/components/ui/navbar";
 import Image from "next/image";
 
@@ -30,12 +29,23 @@ export default function Page() {
           </div>
         </div>
 
-        <section className="flex-1 flex items-center justify-center px-6 py-16">
-          <div className="w-full max-w-md">
-            <LoginCard />
+        <section className="flex-1 flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
+          <div className="w-full max-w-2xl rounded-2xl px-6 sm:px-10 py-10 sm:py-12 shadow-md border border-white/80 bg-white/90 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-[#15375c]">
+              Thank you for submitting your time capsule
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              Your responses have been saved. Your profile will appear on the
+              Stay Connected page once it has been approved.
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              If you believe there is an error with your submission, please
+              contact david @zkc.david.
+            </p>
           </div>
         </section>
       </div>
     </main>
   );
 }
+
