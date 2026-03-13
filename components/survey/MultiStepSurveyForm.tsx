@@ -11,9 +11,7 @@ import { db } from "@/firebase/firebase.config";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
 
-// Full survey schema matching the spec in self/cursor.md and your latest field list.
 const surveySchema = z.object({
-  // Staying connected card (public profile)
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   university: z.string().min(1, "University is required"),
@@ -30,8 +28,8 @@ const surveySchema = z.object({
   gender: z.string().min(1, "Selection is required"),
   ethnicity: z.string().min(1, "Selection is required"),
   religion: z.string().min(1, "Selection is required"),
-  originalHomeSchool: z.string().min(1, "Selection is required"), // Y/N
-  specializedPrograms: z.string().min(1, "Selection is required"), // e.g. SHSM / AP / None
+  originalHomeSchool: z.string().min(1, "Selection is required"),
+  specializedPrograms: z.string().min(1, "Selection is required"),
 
   // Academic background
   grade11Avg: z.coerce.number().min(0).max(100),
@@ -70,7 +68,7 @@ const surveySchema = z.object({
   biggestHelpSucceeding: z.string().min(1, "Required"),
   redoGrade12Reflections: z.string().min(1, "Required"),
   adviceForG12s: z.string().min(1, "Required"),
-  gladCameToFraser: z.string().min(1, "Required"), // Y/N
+  gladCameToFraser: z.string().min(1, "Required"),
 });
 
 type SurveyFormValues = z.infer<typeof surveySchema>;
@@ -199,7 +197,6 @@ export function MultiStepSurveyForm() {
       ? `jfss_survey_draft_${user.uid}`
       : null;
 
-  // Load draft on mount for this user
   useEffect(() => {
     if (!user || !draftKey) return;
     try {
@@ -208,11 +205,10 @@ export function MultiStepSurveyForm() {
       const parsed = JSON.parse(raw) as Partial<SurveyFormValues>;
       methods.reset({ ...methods.getValues(), ...parsed });
     } catch {
-      // ignore malformed drafts
+
     }
   }, [user, draftKey, methods]);
 
-  // Periodic autosave of draft (every 15s)
   useEffect(() => {
     if (!user || !draftKey) return;
     const id = window.setInterval(() => {
@@ -220,7 +216,7 @@ export function MultiStepSurveyForm() {
       try {
         window.localStorage.setItem(draftKey, JSON.stringify(values));
       } catch {
-        // ignore quota errors
+
       }
     }, 15000);
     return () => window.clearInterval(id);
@@ -299,7 +295,6 @@ export function MultiStepSurveyForm() {
         gladCameToFraser,
       } = values;
 
-      // Public profile document
       await setDoc(
         doc(db, "public_profiles", uid),
         {
@@ -315,7 +310,6 @@ export function MultiStepSurveyForm() {
         { merge: true }
       );
 
-      // Private survey document
       await setDoc(
         doc(db, "private_survey", uid),
         {
@@ -357,7 +351,6 @@ export function MultiStepSurveyForm() {
         { merge: true }
       );
 
-      // Mark survey as completed
       await updateDoc(doc(db, "users", uid), {
         hasCompletedSurvey: true,
       });
@@ -380,15 +373,13 @@ export function MultiStepSurveyForm() {
         onSubmit={methods.handleSubmit(onSubmit)}
         className="w-full max-w-3xl mx-auto space-y-8"
       >
-        {/* Step header */}
         <div className="flex justify-between items-center">
           <div className="flex gap-2 text-sm font-medium text-muted-foreground">
             {steps.map((s) => (
               <div
                 key={s.id}
-                className={`flex items-center gap-1 ${
-                  step === s.id ? "text-primary" : ""
-                }`}
+                className={`flex items-center gap-1 ${step === s.id ? "text-primary" : ""
+                  }`}
               >
                 <span className="inline-flex size-6 items-center justify-center rounded-full border text-xs">
                   {s.id}

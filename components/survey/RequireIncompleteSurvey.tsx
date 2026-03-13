@@ -19,7 +19,6 @@ export function RequireIncompleteSurvey({
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      // RequireAuth handles redirect in this case.
       setChecking(false);
       return;
     }
