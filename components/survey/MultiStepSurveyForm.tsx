@@ -198,7 +198,7 @@ export function MultiStepSurveyForm() {
           )}
           {submitSuccess && (
             <p className="text-sm text-emerald-600">
-              Your time capsule has been submitted. Thank you!
+              Your survey has been submitted. Thank you!
             </p>
           )}
         </div>

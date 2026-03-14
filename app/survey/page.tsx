@@ -12,7 +12,7 @@ export default function Page() {
           src="/hero-bg.png"
           fill
           className="object-cover"
-          alt=""
+          alt="" 
           priority
           sizes="100vw"
         />
@@ -37,7 +37,7 @@ export default function Page() {
             <section className="flex-1 flex items-start justify-center px-4 sm:px-6 py-10 sm:py-12">
               <div className="w-full max-w-4xl rounded-2xl px-4 sm:px-8 py-8 sm:py-10 shadow-md border border-white/80 bg-white/90 text-left">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[#15375c]">
-                  Senior Time Capsule Survey
+                  Senior Survey
                 </h1>
                 <p className="text-sm sm:text-base text-muted-foreground mb-6">
                   Please take your time filling this out carefully. You{" "}

@@ -32,7 +32,7 @@ export default function Page() {
         <section className="flex-1 flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
           <div className="w-full max-w-2xl rounded-2xl px-6 sm:px-10 py-10 sm:py-12 shadow-md border border-white/80 bg-white/90 text-center">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-[#15375c]">
-              Thank you for submitting your time capsule
+              Thank you for submitting this survey
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground mb-4">
               Your responses have been saved. Your profile will appear on the
