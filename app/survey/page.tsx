@@ -40,7 +40,7 @@ export default function Page() {
                   Senior Survey
                 </h1>
                 <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                  Please take your time filling this out carefully. You{" "}
+                  Please take your time filling this out. You{" "}
                   <span className="font-semibold">can only submit once</span>.
                 </p>
 
