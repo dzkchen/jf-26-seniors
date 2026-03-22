@@ -5,6 +5,7 @@ import { db } from "@/firebase/firebase.config";
 
 import type { SurveyFormValues } from "./surveyConstants";
 
+/* blah blah blah */
 export async function submitSurvey(values: SurveyFormValues, user: User) {
   const uid = user.uid;
 
