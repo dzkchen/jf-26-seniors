@@ -1,21 +1,41 @@
 import LoginCard from "@/components/ui/loginpage";
+import { Navbar } from "@/components/ui/navbar";
 import Image from "next/image";
 
-export default function Home() {
-    return (
-        <main className="relative min-h-screen w-full flex items-center justify-center p-4">
-            <div className="absolute inset-0 z-0">
-                <Image
-                    src="/hero-bg.png"
-                    layout="fill"
-                    objectFit="cover"
-                    alt="Hero background"
-                />
-                <div className="absolute inset-0 bg-black opacity-50"></div>
-            </div>
-            <div className="w-[30%] mx-auto opacity-90 rounded-[20px]">
-                <LoginCard />
-            </div>
-        </main>
-    );
+export default function Page() {
+  return (
+    <main className="min-h-screen relative overflow-x-hidden">
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/hero-bg.png"
+          fill
+          className="object-cover"
+          alt=""
+          priority
+          sizes="100vw"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(228, 248, 255, 0.85)" }}
+        />
+      </div>
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <div className="w-[90%] max-w-6xl mx-auto mt-4 sm:mt-6">
+          <div
+            className="rounded-2xl px-4 py-2 shadow-lg"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.95)" }}
+          >
+            <Navbar />
+          </div>
+        </div>
+
+        <section className="flex-1 flex items-center justify-center px-6 py-16">
+          <div className="w-full max-w-md">
+            <LoginCard />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }
