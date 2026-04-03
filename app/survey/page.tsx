@@ -2,6 +2,7 @@ import { Navbar } from "@/components/ui/navbar";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { RequireIncompleteSurvey } from "@/components/survey/RequireIncompleteSurvey";
 import { MultiStepSurveyForm } from "@/components/survey/MultiStepSurveyForm";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import Image from "next/image";
 
 export default function Page() {
@@ -36,13 +37,20 @@ export default function Page() {
           <RequireIncompleteSurvey>
             <section className="flex-1 flex items-start justify-center px-4 sm:px-6 py-10 sm:py-12">
               <div className="w-full max-w-4xl rounded-2xl px-4 sm:px-8 py-8 sm:py-10 shadow-md border border-white/80 bg-white/90 text-left">
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[#15375c]">
-                  Senior Survey
-                </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                  Please take your time filling this out. You{" "}
-                  <span className="font-semibold">can only submit once</span>.
-                </p>
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[#15375c]">
+                      Senior Survey
+                    </h1>
+                    <p className="text-sm sm:text-base text-muted-foreground">
+                      Please take your time filling this out. You{" "}
+                      <span className="font-semibold">can only submit once</span>.
+                    </p>
+                  </div>
+                  <div className="flex justify-end">
+                    <SignOutButton />
+                  </div>
+                </div>
 
                 <MultiStepSurveyForm />
               </div>

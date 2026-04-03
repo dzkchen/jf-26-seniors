@@ -1,5 +1,6 @@
 "use client";
 
+import { FirebaseError } from "firebase/app";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -18,11 +19,16 @@ import {
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { auth, db } from "@/firebase/firebase.config";
+import { clearSurveyDraft } from "@/components/survey/draftStorage";
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const SESSION_STARTED_AT_KEY = "jfss_session_started_at";
 const UNAUTHORIZED_MESSAGE =
   "please login with your Peel Email, if error persists please contact david @zkc.david";
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
 
 type AuthContextValue = {
   user: User | null;
@@ -53,9 +59,66 @@ function clearSessionStartedAt() {
 }
 
 async function isEmailAllowed(email: string): Promise<boolean> {
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
   const snap = await getDoc(doc(db, "allowed_emails", normalizedEmail));
   return snap.exists();
+}
+
+async function syncSignedInUser(u: User) {
+  const email = u.email ?? "";
+  if (!email) {
+    throw new Error("missing-email");
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+
+  const tokenResult = await u.getIdTokenResult(true);
+  if (tokenResult.claims.email_verified !== true) {
+    throw new Error("email-not-verified");
+  }
+
+  const allowed = await isEmailAllowed(email);
+  if (!allowed) {
+    throw new Error("email-not-allowed");
+  }
+
+  const userRef = doc(db, "users", u.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (userSnap.exists()) {
+    await setDoc(
+      userRef,
+      {
+        email: normalizedEmail,
+        displayName: u.displayName ?? "",
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } else {
+    await setDoc(userRef, {
+      email: normalizedEmail,
+      displayName: u.displayName ?? "",
+      hasCompletedSurvey: false,
+      updatedAt: serverTimestamp(),
+    });
+  }
+}
+
+function getAuthErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    if (error.message === "missing-email") return UNAUTHORIZED_MESSAGE;
+    if (error.message === "email-not-verified") {
+      return "your Google account email is not verified, so Firestore access is blocked";
+    }
+    if (error.message === "email-not-allowed") return UNAUTHORIZED_MESSAGE;
+  }
+
+  if (error instanceof FirebaseError && error.code === "permission-denied") {
+    return "sign-in worked, but Firestore denied access. Double-check the deployed Firestore rules and the authenticated account's token claims.";
+  }
+
+  return UNAUTHORIZED_MESSAGE;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -80,6 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const startedAt = getSessionStartedAt();
       if (startedAt && Date.now() - startedAt > SESSION_TTL_MS) {
+        clearSurveyDraft(u.uid);
         await signOut(auth);
         clearSessionStartedAt();
         setUser(null);
@@ -87,8 +151,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setUser(u);
-      setLoading(false);
+      try {
+        await syncSignedInUser(u);
+        if (!startedAt) {
+          setSessionStartedAtNow();
+        }
+        setUser(u);
+      } catch (e) {
+        console.error("Failed to initialize signed-in user", e);
+        clearSurveyDraft(u.uid);
+        await signOut(auth);
+        clearSessionStartedAt();
+        setUser(null);
+        setError(getAuthErrorMessage(e));
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsub();
@@ -101,60 +179,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       error,
       signOutNow: async () => {
         setError("");
+        if (user) clearSurveyDraft(user.uid);
         await signOut(auth);
         clearSessionStartedAt();
       },
       signInWithGoogle: async () => {
+        setLoading(true);
         setError("");
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" });
 
         try {
-          const result = await signInWithPopup(auth, provider);
-          const u = result.user;
-
-          const email = u.email ?? "";
-          if (!email) {
-            await signOut(auth);
-            clearSessionStartedAt();
-            setError(UNAUTHORIZED_MESSAGE);
-            return;
-          }
-
-          const allowed = await isEmailAllowed(email);
-          if (!allowed) {
-            await signOut(auth);
-            clearSessionStartedAt();
-            setError(UNAUTHORIZED_MESSAGE);
-            return;
-          }
-
-          setSessionStartedAtNow();
-
-          const userRef = doc(db, "users", u.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (userSnap.exists()) {
-            await setDoc(
-              userRef,
-              {
-                email: email.toLowerCase(),
-                displayName: u.displayName ?? "",
-                updatedAt: serverTimestamp(),
-              },
-              { merge: true }
-            );
-          } else {
-            await setDoc(userRef, {
-              email: email.toLowerCase(),
-              displayName: u.displayName ?? "",
-              hasCompletedSurvey: false,
-              updatedAt: serverTimestamp(),
-            });
-          }
+          await signInWithPopup(auth, provider);
         } catch (e) {
           console.error(e);
-          setError(UNAUTHORIZED_MESSAGE);
+          setLoading(false);
+          setError(getAuthErrorMessage(e));
         }
       },
     }),

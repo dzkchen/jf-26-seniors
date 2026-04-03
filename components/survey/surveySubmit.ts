@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 
 import { db } from "@/firebase/firebase.config";
 
@@ -111,6 +111,6 @@ export async function submitSurvey(values: SurveyFormValues, user: User) {
 
   await updateDoc(doc(db, "users", uid), {
     hasCompletedSurvey: true,
+    updatedAt: serverTimestamp(),
   });
 }
-

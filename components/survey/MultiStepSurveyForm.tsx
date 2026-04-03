@@ -19,6 +19,7 @@ import {
   StepPostSecondaryAndReflection,
   StepProfileAndAcademics,
 } from "./SurveySteps";
+import { clearSurveyDraft, getSurveyDraftKey } from "./draftStorage";
 import { submitSurvey } from "./surveySubmit";
 
 export function MultiStepSurveyForm() {
@@ -82,7 +83,7 @@ export function MultiStepSurveyForm() {
 
   const draftKey =
     typeof window !== "undefined" && user
-      ? `jfss_survey_draft_${user.uid}`
+      ? getSurveyDraftKey(user.uid)
       : null;
 
   useEffect(() => {
@@ -138,6 +139,7 @@ export function MultiStepSurveyForm() {
     setSubmitError(null);
     try {
       await submitSurvey(values, user);
+      clearSurveyDraft(user.uid);
       setSubmitSuccess(true);
       router.replace("/thanks");
     } catch (e) {
@@ -240,4 +242,3 @@ export function MultiStepSurveyForm() {
     </FormProvider>
   );
 }
-

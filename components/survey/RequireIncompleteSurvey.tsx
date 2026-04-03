@@ -18,10 +18,7 @@ export function RequireIncompleteSurvey({
 
   useEffect(() => {
     if (loading) return;
-    if (!user) {
-      setChecking(false);
-      return;
-    }
+    if (!user) return;
 
     let cancelled = false;
 
@@ -47,7 +44,7 @@ export function RequireIncompleteSurvey({
     };
   }, [user, loading, router]);
 
-  if (checking) return null;
+  if (loading || !user || checking) return null;
 
   return <>{children}</>;
 }
