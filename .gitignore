@@ -13,6 +13,8 @@
 # testing
 /coverage
 /self
+/todo
+firestore.rules
 
 # next.js
 /.next/

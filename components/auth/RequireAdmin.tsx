@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
 
-import { db } from "@/firebase/firebase.config";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
@@ -23,8 +21,8 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        const isAdmin = snap.exists() && snap.data().role === "admin";
+        const tokenResult = await user.getIdTokenResult();
+        const isAdmin = tokenResult.claims.admin === true;
         if (cancelled) return;
         if (!isAdmin) {
           router.replace("/");
@@ -46,4 +44,3 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-

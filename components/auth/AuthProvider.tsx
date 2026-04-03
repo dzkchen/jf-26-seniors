@@ -10,13 +10,10 @@ import {
   type User,
 } from "firebase/auth";
 import {
-  collection,
   doc,
-  getDocs,
-  query,
+  getDoc,
   serverTimestamp,
   setDoc,
-  where,
 } from "firebase/firestore";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
@@ -56,12 +53,9 @@ function clearSessionStartedAt() {
 }
 
 async function isEmailAllowed(email: string): Promise<boolean> {
-  const q = query(
-    collection(db, "allowed_emails"),
-    where("email", "==", email.toLowerCase())
-  );
-  const snap = await getDocs(q);
-  return !snap.empty;
+  const normalizedEmail = email.toLowerCase();
+  const snap = await getDoc(doc(db, "allowed_emails", normalizedEmail));
+  return snap.exists();
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -110,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await signOut(auth);
         clearSessionStartedAt();
       },
-      signInWithGoogle: async (opts) => {
+      signInWithGoogle: async () => {
         setError("");
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" });
@@ -137,29 +131,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           setSessionStartedAtNow();
 
-          await setDoc(
-            doc(db, "users", u.uid),
-            {
-              email: email.toLowerCase(),
-              displayName: u.displayName ?? "",
-              hasCompletedSurvey: false,
-              role: "student",
-              updatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
+          const userRef = doc(db, "users", u.uid);
+          const userSnap = await getDoc(userRef);
 
-          await setDoc(
-            doc(db, "users", u.uid),
-            {
+          if (userSnap.exists()) {
+            await setDoc(
+              userRef,
+              {
+                email: email.toLowerCase(),
+                displayName: u.displayName ?? "",
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } else {
+            await setDoc(userRef, {
               email: email.toLowerCase(),
               displayName: u.displayName ?? "",
               hasCompletedSurvey: false,
-              role: "student",
               updatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
+            });
+          }
         } catch (e) {
           console.error(e);
           setError(UNAUTHORIZED_MESSAGE);
@@ -177,4 +169,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-
