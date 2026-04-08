@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { doc, getDoc } from "firebase/firestore";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { db } from "@/firebase/firebase.config";
+import { isUserRole } from "@/components/auth/authTypes";
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -21,8 +24,10 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        const tokenResult = await user.getIdTokenResult();
-        const isAdmin = tokenResult.claims.admin === true;
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        const rawRole = userSnap.data()?.role;
+        const role = isUserRole(rawRole) ? rawRole : undefined;
+        const isAdmin = role === "admin";
         if (cancelled) return;
         if (!isAdmin) {
           router.replace("/");

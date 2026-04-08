@@ -2,7 +2,13 @@ import LoginCard from "@/components/ui/loginpage";
 import { Navbar } from "@/components/ui/navbar";
 import Image from "next/image";
 
-export default function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+
   return (
     <main className="min-h-screen relative overflow-x-hidden">
       <div className="fixed inset-0 z-0">
@@ -32,7 +38,7 @@ export default function Page() {
 
         <section className="flex-1 flex items-center justify-center px-6 py-16">
           <div className="w-full max-w-md">
-            <LoginCard />
+            <LoginCard next={next} />
           </div>
         </section>
       </div>

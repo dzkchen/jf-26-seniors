@@ -6,9 +6,16 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
 
-export default function LoginCard() {
+function getSafeRedirectTarget(next: string | null) {
+  if (!next) return "/survey";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/survey";
+  return next;
+}
+
+export default function LoginCard({ next }: { next?: string }) {
   const router = useRouter();
   const { signInWithGoogle, error, loading, user } = useAuth();
+  const redirectTarget = getSafeRedirectTarget(next ?? null);
 
   const handleGoogleSignIn = async () => {
     await signInWithGoogle();
@@ -16,9 +23,9 @@ export default function LoginCard() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/survey");
+      router.replace(redirectTarget);
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectTarget]);
 
   return (
     <motion.div
@@ -46,4 +53,3 @@ export default function LoginCard() {
     </motion.div>
   );
 }
-

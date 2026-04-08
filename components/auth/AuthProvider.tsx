@@ -20,6 +20,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { auth, db } from "@/firebase/firebase.config";
 import { clearSurveyDraft } from "@/components/survey/draftStorage";
+import { isUserRole, type UserRole } from "@/components/auth/authTypes";
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const SESSION_STARTED_AT_KEY = "jfss_session_started_at";
@@ -86,11 +87,15 @@ async function syncSignedInUser(u: User) {
   const userSnap = await getDoc(userRef);
 
   if (userSnap.exists()) {
+    const existingRole = userSnap.data().role;
+    const role: UserRole = isUserRole(existingRole) ? existingRole : "student";
+
     await setDoc(
       userRef,
       {
         email: normalizedEmail,
         displayName: u.displayName ?? "",
+        role,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
@@ -100,6 +105,7 @@ async function syncSignedInUser(u: User) {
       email: normalizedEmail,
       displayName: u.displayName ?? "",
       hasCompletedSurvey: false,
+      role: "student",
       updatedAt: serverTimestamp(),
     });
   }
@@ -115,7 +121,7 @@ function getAuthErrorMessage(error: unknown) {
   }
 
   if (error instanceof FirebaseError && error.code === "permission-denied") {
-    return "sign-in worked, but Firestore denied access. Double-check the deployed Firestore rules and the authenticated account's token claims.";
+    return "sign-in worked, but Firestore denied access. Double-check the deployed Firestore rules for allowed_emails and users.";
   }
 
   return UNAUTHORIZED_MESSAGE;
