@@ -12,6 +12,10 @@ import {
   RESPONSE_LONG_FIELDS,
 } from "./adminTypes";
 
+function hasPopulatedFields(value: Record<string, unknown>) {
+  return Object.keys(value).length > 0;
+}
+
 function formatCell(d: PrivateSurveyDoc, field: (typeof RESPONSE_GRID_FIELDS)[number]): string {
   if ("keys" in field) {
     const a = d[field.keys[0]] ?? "—";
@@ -57,14 +61,16 @@ export function AdminDashboard() {
           getDocs(collection(db, "private_survey")),
           getDocs(collection(db, "public_profiles")),
         ]);
-        const privateDocs: PrivateSurveyDoc[] = privateSnap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<PrivateSurveyDoc, "id">),
-        }));
-        const publicDocs: PublicProfileDoc[] = publicSnap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<PublicProfileDoc, "id">),
-        }));
+        const privateDocs: PrivateSurveyDoc[] = privateSnap.docs.flatMap((d) => {
+          const raw = d.data() as Omit<PrivateSurveyDoc, "id">;
+          if (!hasPopulatedFields(raw as Record<string, unknown>)) return [];
+          return [{ id: d.id, ...raw }];
+        });
+        const publicDocs: PublicProfileDoc[] = publicSnap.docs.flatMap((d) => {
+          const raw = d.data() as Omit<PublicProfileDoc, "id">;
+          if (!hasPopulatedFields(raw as Record<string, unknown>)) return [];
+          return [{ id: d.id, ...raw }];
+        });
         setData(privateDocs);
         setProfiles(publicDocs);
       } catch (e) {
@@ -78,7 +84,9 @@ export function AdminDashboard() {
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading survey statistics…</p>;
   if (error) return <p className="text-sm text-red-500">{error}</p>;
-  if (!data.length) return <p className="text-sm text-muted-foreground">No survey submissions found yet.</p>;
+  if (!data.length && !profiles.length) {
+    return <p className="text-sm text-muted-foreground">No survey submissions found yet.</p>;
+  }
 
   return (
     <div className="space-y-8">
@@ -94,35 +102,39 @@ export function AdminDashboard() {
 
       <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
         <h2 className="text-sm font-semibold mb-3 text-[#15375c]">Individual Responses (all fields)</h2>
-        <div className="space-y-4 max-h-[540px] overflow-y-auto pr-2">
-          {data.map((d, index) => (
-            <div
-              key={d.id}
-              className="rounded-xl border border-slate-200/70 bg-white/90 p-3 sm:p-4 text-xs sm:text-sm"
-            >
-              <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                Response #{index + 1}
+        {data.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No completed private survey submissions yet.</p>
+        ) : (
+          <div className="space-y-4 max-h-[540px] overflow-y-auto pr-2">
+            {data.map((d, index) => (
+              <div
+                key={d.id}
+                className="rounded-xl border border-slate-200/70 bg-white/90 p-3 sm:p-4 text-xs sm:text-sm"
+              >
+                <div className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Response #{index + 1}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {RESPONSE_GRID_FIELDS.map((field) => (
+                    <div key={"keys" in field ? field.keys.join(",") : field.key}>
+                      <span className="font-medium">{field.label}</span> {formatCell(d, field)}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <span className="font-medium">Schools applied:</span> {d.collegesAppliedList || "—"}
+                </div>
+                <div className="mt-2 space-y-1">
+                  {RESPONSE_LONG_FIELDS.map(({ label, key }) => (
+                    <p key={key}>
+                      <span className="font-medium">{label}</span> {d[key] || "—"}
+                    </p>
+                  ))}
+                </div>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {RESPONSE_GRID_FIELDS.map((field) => (
-                  <div key={"keys" in field ? field.keys.join(",") : field.key}>
-                    <span className="font-medium">{field.label}</span> {formatCell(d, field)}
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2">
-                <span className="font-medium">Schools applied:</span> {d.collegesAppliedList || "—"}
-              </div>
-              <div className="mt-2 space-y-1">
-                {RESPONSE_LONG_FIELDS.map(({ label, key }) => (
-                  <p key={key}>
-                    <span className="font-medium">{label}</span> {d[key] || "—"}
-                  </p>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
